@@ -5,11 +5,11 @@ website = requests.get('https://cars.av.by/filter?brands[0][brand]=8&brands[0][m
 soup = BeautifulSoup(website.text, 'lxml')
 car = soup.find_all('div', class_='listing-item__wrap')
 print(car)
-# for i in car:
-#     ssilka = car.find('a', class_='listing-item__link')
-#     info = car.find('div', class_='listing-item__params')
-#     price = car.find('div', class_='listing-item__prices')
-#
-# print(ssilka,
-#       price,
-#       info)
+for i in car:
+    ssilka = car.find('a', class_='listing-item__link')
+    info = car.find('div', class_='listing-item__params')
+    price = car.find('div', class_='listing-item__prices')
+
+print(ssilka,
+      price,
+      info)
