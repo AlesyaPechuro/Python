@@ -10,6 +10,4 @@ for i in car:
     info = car.find('div', class_='listing-item__params')
     price = car.find('div', class_='listing-item__prices')
 
-print(ssilka,
-      price,
-      info)
+print(ssilka)
