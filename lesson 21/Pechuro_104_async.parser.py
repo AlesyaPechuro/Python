@@ -18,16 +18,16 @@ async def get_page_data(session, page):  # ф-ция по сбору данны�
         for car in cars:  # заходим в каждый и ищем нужную нам информацию
             link = 'https://cars.av.by' + car.find('a', class_='listing-item__link').get('href')  # находим ссылку
 
-            price_byn = car.find('div', class_='listing-item__price').text  # цена в бун
-            new_price_byn = ''.join([b for b in price_byn if b.isdigit()])  # чтобы убрать скрытые символы
+            price_byn = car.find('div', class_='listing-item__price').text.encode('ascii', errors='ignore').decode(
+                'UTF-8')   # чтобы убрать скрытые символы
 
-            price_usd = car.find('div', class_='listing-item__priceusd').text  # цена в долларах
-            new_price_usd = ''.join([u for u in price_usd if u.isdigit()])
+            price_usd = car.find('div', class_='listing-item__priceusd').text.encode('ascii', errors='ignore').decode(
+                'UTF-8')
 
-            info = car.find('div', class_='listing-item__params').text.replace('\xa0', '')  # информация
-            new_info = info.replace('\u2009', '')  # также убираем скрытые символы
+            info = car.find('div', class_='listing-item__params').text.encode('ascii', errors='ignore').decode(
+                'UTF-8')
 
-            data.append([new_price_usd + '$', new_price_byn + 'p.', new_info, link])  # добавляем в список
+            data.append([price_usd, price_byn + 'p.', info, link])  # добавляем в список
         print(data)
 
 
