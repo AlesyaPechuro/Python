@@ -28,7 +28,7 @@ logging.basicConfig(
     format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s '
            u'[%(asctime)s] %(message)s')
 
-"""---------------------------------------------- настройка FMS -----------------------------------------------------"""
+"""---------------------------------------------- настройка FSM -----------------------------------------------------"""
 
 
 class Me_info(StatesGroup):
@@ -46,16 +46,13 @@ async def enter_me_info(message: types.Message):
         await Me_info.Q1.set()  # бот начинает ждать наш ответ, задав состояние Q1
 
 
-# задаем хендлер для состояния Q1
-# обратите внимание, что к состоянию мы обращаемся через атрибут класса
+# Задаем хендлер для состояния Q1. Обратите внимание, что к состоянию мы обращаемся через атрибут класса
 @dp.message_handler(state=Me_info.Q1)
 # нашей функции мы указываем, что хотим получить сообщение и состояние
 async def answer_for_state_Q1(message: types.Message, state: FSMContext):
     answer = message.text  # сохраняем текст полученного сообщения
-    # в данном месте прописываем для нашего состояния обновление данных
-    # в пространство имен для текущего состояния
-    # мы добавляем ключ answer1 со значением answer, далее мы в этом убедимся
-    await state.update_data(answer1=answer)
+    # в пространство имен для текущего состояния мы добавляем ключ answer1 со значением answer
+    await state.update_data(answer1=answer)  # в данном месте прописываем для нашего состояния обновление данных
     await message.answer("Ваша ссылка сохранена \n"
                          "2. Введите текст")
     await Me_info.Q2.set()  # и задаем состояние Q2
@@ -136,18 +133,17 @@ async def rassilka(message: types.Message):
 @dp.message_handler(content_types=['text'])  # указываем боту реагировать на текстовые сообщения
 async def get_message(message):
     if message.text == 'Информация':  # если введено слово Информация, то выводит строку
-        await bot.send_message(message.chat.id, text='Информация\nБот создан для обучения', parse_mode='Markdown')
+        await bot.send_message(message.chat.id,
+                               text='Информация\nБот создан для обучения\nМожешь ознакомиться с литературой',
+                               reply_markup=keyboard.infolink, parse_mode='Markdown')
 
     if message.text == 'Статистика':
         await bot.send_message(message.chat.id, text='Хочешь посмотреть статистику бота?', reply_markup=keyboard.stats,
                                parse_mode='Markdown')
 
     if message.text == 'Разработчик':
-        link1 = open('link.txt', encoding='utf-8')  # вытаскиваем с файла инфу, помещаем в переменную и выводим её
-        link = link1.read()
-        text1 = open('text.txt', encoding='utf-8')
-        text = text1.read()
-        await bot.send_message(message.chat.id, text=f'Создатель: {link}\n{text}', parse_mode='HTML')
+        await bot.send_message(message.chat.id, text='Хочешь знать кто разработчик?', reply_markup=keyboard.creator,
+                               parse_mode='Markdown')
 
 
 """------------------------------------------------ КОД ДЛЯ КОЛБЭКА ------------------------------------------------"""
@@ -164,6 +160,16 @@ async def join(call: types.CallbackQuery):
     else:
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                     text='У тебя нет админки\n Куда ты полез!', parse_mode='Markdown')
+
+
+@dp.callback_query_handler(text_contains='link')
+async def link_(call: types.CallbackQuery):
+    link1 = open('link.txt', encoding='utf-8')  # вытаскиваем с файла инфу, помещаем в переменную и выводим её
+    link = link1.read()
+    text1 = open('text.txt', encoding='utf-8')
+    text = text1.read()
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=f'Создатель: {link}\n{text}', parse_mode='HTML')
 
 
 @dp.callback_query_handler(text_contains='cancel')
