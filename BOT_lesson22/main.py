@@ -1,4 +1,5 @@
 from aiogram import Bot, types
+from aiogram.types.base import InputFile
 from aiogram.utils import executor
 import asyncio
 from aiogram.dispatcher import Dispatcher
@@ -14,6 +15,7 @@ import config
 import keyboard
 
 import logging
+import os
 
 storage = MemoryStorage()
 bot = Bot(token=config.TOKEN, parse_mode=types.ParseMode.HTML)  # инициализируем бота
@@ -145,6 +147,22 @@ async def get_message(message):
         await bot.send_message(message.chat.id, text='Хочешь знать кто разработчик?', reply_markup=keyboard.creator,
                                parse_mode='Markdown')
 
+    if message.text == 'Покажи пользователя':
+        await bot.send_message(message.chat.id, text='Хочешь узнать свой id?', reply_markup=keyboard.show_user,
+                               parse_mode='Markdown')
+
+    if message.text == 'Отправить фото':
+        await bot.send_message(message.chat.id, text='Пришли мне своё фото', parse_mode='Markdown')
+        # await bot.send_photo(message.chat.id, open('photo.png', 'rb')) так он отправит фото в ответ
+
+
+@dp.message_handler(content_types=['photo'])  # сохраняем фото кот присылают боту в папку photo и называем send+id.jpg
+async def get_photo(message: types.Message):
+    await message.photo[-1].download('photo/send-' + message.photo[-1].file_unique_id + '.jpg')
+    # Путь к фото - это массив. И мы берем его -1 элемент кот является его id
+    await bot.send_message(message.chat.id, text='Твоё фото теперь в моей личной галерее',
+                           reply_markup=keyboard.show_photo, parse_mode='Markdown')
+
 
 """------------------------------------------------ КОД ДЛЯ КОЛБЭКА ------------------------------------------------"""
 
@@ -176,6 +194,25 @@ async def link_(call: types.CallbackQuery):
 async def cancel(call: types.CallbackQuery):
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text='Ты вернулся в главное меню. Жми опять кнопки', parse_mode='Markdown')
+
+
+@dp.callback_query_handler(text_contains='user_id')
+async def user_id(call: types.CallbackQuery):
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=f'Твой id: {call.message.chat.id}', parse_mode='HTML')
+
+
+@dp.callback_query_handler(text_contains='back')
+async def back(call: types.CallbackQuery):
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text='Вы отменили выбор', parse_mode='Markdown')
+
+
+@dp.callback_query_handler(text_contains='gallery')
+async def gallery(call: types.CallbackQuery):
+    for file in os.listdir('photo'):
+        await bot.send_photo(chat_id=call.message.chat.id,
+                             photo=fr'C:\Users\by01.admin\PycharmProjects\lessons\BOT_lesson22\photo\{file}')
 
 
 if __name__ == '__main__':  # создаем точку входа
